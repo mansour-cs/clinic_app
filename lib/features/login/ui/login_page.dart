@@ -1,4 +1,6 @@
 import 'package:clinic_app/features/login/register_page.dart';
+import 'package:clinic_app/features/login/ui/doctor_dashboard.dart';
+import 'package:clinic_app/features/patient/pages/patient_dashboard.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +11,55 @@ class LoginPage extends StatelessWidget {
   final passwordController = TextEditingController();
 
   LoginPage({super.key});
+
+  Future<void> loginUser(BuildContext context) async {
+  var response = await http.post(
+    Uri.parse("http://10.0.2.2:8000/login"),
+    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    body: {
+      "username": usernameController.text,
+      "password": passwordController.text,
+    },
+  );
+
+  print(response.body); // 👈 مهم جداً
+
+  var data = jsonDecode(response.body);
+
+
+    if (data["status"] == "success") {
+      var user = data["user"];
+
+      int userId = user["id"];
+      String role = user["role"];
+      String fullName = user["full_name"];
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Welcome $fullName")),
+      );
+
+      // الانتقال حسب الدور
+      if (role == "patient") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PatientDashboard(userId: userId),
+          ),
+        );
+      } else if (role == "doctor") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DoctorDashboard(userId: userId),
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Wrong username or password")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +95,17 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
+
+            ElevatedButton(
+              style: AppButtons.primaryButton,
+              onPressed: () => loginUser(context),
+              child: const Text("Login"),
+            ),
+
+            const SizedBox(height: 24),
+
             TextButton(
               onPressed: () {
                 Navigator.push(
@@ -53,42 +114,6 @@ class LoginPage extends StatelessWidget {
                 );
               },
               child: Text("Create an account"),
-            ),
-
-            const SizedBox(height: 24),
-
-            ElevatedButton(
-              style: AppButtons.primaryButton,
-              onPressed: () async {
-                final username = usernameController.text;
-                final password = passwordController.text;
-
-                // إرسال البيانات للباك إند FastAPI
-                var response = await http.post(
-                  Uri.parse("http://10.0.2.2:8000/login"),
-                  headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                  },
-                  body: {"username": username, "password": password},
-                );
-
-                var data = jsonDecode(response.body);
-
-                if (data["status"] == "success") {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text("Login Successful")));
-
-                  // هون مننتقل لصفحة Home
-                  // Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()));
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Wrong username or password")),
-                  );
-                }
-              },
-
-              child: const Text("Login"),
             ),
           ],
         ),

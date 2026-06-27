@@ -12,6 +12,8 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  final fullNameController = TextEditingController();
+  final emailController = TextEditingController();
 
   bool isLoading = false;
 
@@ -24,7 +26,9 @@ class _RegisterPageState extends State<RegisterPage> {
       body: {
         "username": usernameController.text,
         "password": passwordController.text,
-        "role": "user"
+        "role": "patient",
+        "full_name": fullNameController.text,
+        "email": emailController.text,
       },
     );
 
@@ -38,8 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("User Registered Successfully")),
       );
-
-      Navigator.pop(context); // رجوع لصفحة Login
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Registration Failed")),
@@ -56,6 +59,24 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           children: [
             TextField(
+              controller: fullNameController,
+              decoration: InputDecoration(
+                labelText: "Full Name",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
               controller: usernameController,
               decoration: InputDecoration(
                 labelText: "Username",
@@ -63,6 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 16),
+
             TextField(
               controller: passwordController,
               obscureText: true,
@@ -72,6 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 24),
+
             ElevatedButton(
               onPressed: isLoading ? null : registerUser,
               child: isLoading
