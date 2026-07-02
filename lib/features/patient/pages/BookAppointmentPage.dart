@@ -12,29 +12,55 @@ class BookAppointmentPage extends StatefulWidget {
 }
 
 class _BookAppointmentPageState extends State<BookAppointmentPage> {
+  List specialties = [];
   List doctors = [];
+
+  String? selectedSpecialtyId;
   int? selectedDoctorId;
   DateTime? selectedDate;
 
+  bool loadingSpecialties = true;
+  bool loadingDoctors = false;
   bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    fetchDoctors();
+    fetchSpecialties();
   }
 
-  Future<void> fetchDoctors() async {
-    var response = await http.get(Uri.parse("http://10.0.2.2:8000/doctors"));
+  // جلب التخصصات
+  Future<void> fetchSpecialties() async {
+    var response = await http.get(Uri.parse("http://10.0.2.2:8000/specialties"));
     var data = jsonDecode(response.body);
 
-    if (data["status"] == "success") {
-      setState(() {
-        doctors = data["data"];
-      });
-    }
+    setState(() {
+      specialties = data["data"];
+      loadingSpecialties = false;
+    });
   }
 
+  // جلب الدكاترة حسب التخصص
+  Future<void> fetchDoctorsBySpecialty(String specialtyId) async {
+    setState(() {
+      loadingDoctors = true;
+      doctors = [];
+      selectedDoctorId = null;
+    });
+
+    var response = await http.get(
+      Uri.parse("http://10.0.2.2:8000/doctors/by_specialty/$specialtyId"),
+    );
+
+    var data = jsonDecode(response.body);
+
+    setState(() {
+      doctors = data["data"];
+      loadingDoctors = false;
+    });
+  }
+
+  // حجز الموعد
   Future<void> bookAppointment() async {
     if (selectedDoctorId == null || selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,7 +77,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
       body: {
         "patient_id": widget.userId.toString(),
         "doctor_id": selectedDoctorId.toString(),
-        "appointment_date": selectedDate.toString(),
+        "appointment_date": selectedDate.toString().split(" ")[0],
       },
     );
 
@@ -80,24 +106,51 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // اختيار الطبيب
-            DropdownButtonFormField<int>(
-              decoration: InputDecoration(
-                labelText: "Select Doctor",
-                border: OutlineInputBorder(),
-              ),
-              items: doctors.map<DropdownMenuItem<int>>((doctor) {
-                return DropdownMenuItem<int>(
-                  value: doctor["id"],
-                  child: Text("${doctor["full_name"]} - ${doctor["specialty_name"]}"),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedDoctorId = value;
-                });
-              },
-            ),
+            // اختيار التخصص
+            loadingSpecialties
+                ? Center(child: CircularProgressIndicator())
+                : DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: "Select Specialty",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: specialties.map<DropdownMenuItem<String>>((spec) {
+                      return DropdownMenuItem<String>(
+                        value: spec["id"].toString(),
+                        child: Text(spec["name"]),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSpecialtyId = value;
+                      });
+                      fetchDoctorsBySpecialty(value!);
+                    },
+                  ),
+
+            const SizedBox(height: 20),
+
+            // اختيار الطبيب حسب التخصص
+            if (selectedSpecialtyId != null)
+              loadingDoctors
+                  ? Center(child: CircularProgressIndicator())
+                  : DropdownButtonFormField<int>(
+                      decoration: InputDecoration(
+                        labelText: "Select Doctor",
+                        border: OutlineInputBorder(),
+                      ),
+                      items: doctors.map<DropdownMenuItem<int>>((doctor) {
+                        return DropdownMenuItem<int>(
+                          value: doctor["id"],
+                          child: Text("${doctor["full_name"]} - ${doctor["specialty_name"]}"),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedDoctorId = value;
+                        });
+                      },
+                    ),
 
             const SizedBox(height: 20),
 
