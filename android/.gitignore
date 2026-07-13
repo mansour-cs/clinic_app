@@ -1,0 +1,60 @@
+# Flutter/Dart/Pub
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+
+# Build outputs
+build/
+android/app/build/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+
+# Android
+.gradle/
+local.properties
+GeneratedPluginRegistrant.java
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# APK / AAB
+*.apk
+*.aab
+
+# iOS
+Pods/
+Runner.xcworkspace/
+DerivedData/
+
+# VS Code
+.vscode/
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+
+# macOS
+macos/Flutter/ephemeral/
+
+# Windows
+windows/Flutter/ephemeral/
+
+# Linux
+linux/Flutter/ephemeral/
+
+# Web
+web/.dart_tool/
+
+# Keystore (مهم جداً)
+key.properties
+**/*.keystore
+**/*.jks
+
+# Captures
+captures/
+
+# CXX
+.cxx/
